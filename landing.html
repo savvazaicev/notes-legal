@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes — Markdown notes for Meta Quest</title>
+<meta name="description" content="Notes is a markdown notes app for Meta Quest Horizon OS: a full editor with live preview, folders, search, task lists and one-tap export — free, private, offline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --text: #f2f2f7;
+    --muted: rgba(242, 242, 247, .62);
+    --faint: rgba(242, 242, 247, .38);
+    --panel: linear-gradient(160deg, #181d24 0%, #0f1216 100%);
+    --panel-border: rgba(255, 255, 255, .08);
+    --card: rgba(255, 255, 255, .045);
+    --indigo: #5c7cfa;
+    --coral: #ff6b57;
+    --green: #30d158;
+    --amber: #ffb020;
+    --sky: #38bdf8;
+    --pink: #ff7eb6;
+    --neutral: #9ba1a6;
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background:
+      radial-gradient(60rem 30rem at 85% -5%, rgba(66, 99, 235, .16), transparent 60%),
+      radial-gradient(50rem 26rem at 8% 12%, rgba(56, 189, 248, .10), transparent 60%),
+      var(--bg);
+  }
+  .wrap { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(0, 0, 0, .55);
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+  }
+  .nav { display: flex; align-items: center; gap: 1.5rem; height: 60px; }
+  .logo { display: flex; align-items: center; gap: .55rem; font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; color: var(--text); text-decoration: none; }
+  .logo .dot {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: conic-gradient(from 210deg, var(--indigo), var(--sky), var(--green), var(--amber), var(--coral), var(--indigo));
+  }
+  .nav-links { display: flex; gap: 1.2rem; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); }
+  .btn {
+    display: inline-block; padding: .55rem 1.1rem; border-radius: 999px;
+    background: var(--indigo); color: #fff; font-weight: 600; font-size: .92rem;
+    text-decoration: none; border: 0; cursor: pointer;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, .2); color: var(--text); }
+  .btn.ghost:hover { background: rgba(255, 255, 255, .06); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 4.5rem 0 3rem; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 2.5rem; align-items: center; }
+  .eyebrow { font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--sky); margin-bottom: .8rem; }
+  h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; margin: 0 0 1rem; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, var(--indigo), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 1.13rem; color: var(--muted); max-width: 30rem; margin: 0 0 1.4rem; }
+  .badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.6rem; }
+  .badge {
+    font-size: .8rem; font-weight: 600; color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; padding: .18rem .7rem;
+  }
+  .cta-row { display: flex; gap: .7rem; flex-wrap: wrap; }
+
+  /* ---------- panels ---------- */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+    overflow: hidden;
+  }
+  .ph { display: flex; align-items: center; gap: .55rem; padding: .7rem 1rem .4rem; }
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: color-mix(in srgb, var(--ac) 22%, transparent);
+    color: var(--ac); flex: none;
+  }
+  .chip .ic { width: 15px; height: 15px; }
+  .pt { font-size: 1.05rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .picons { margin-left: auto; display: flex; gap: .15rem; color: var(--faint); }
+  .picons .ic { width: 17px; height: 17px; }
+  .pbody { padding: .4rem 1.2rem 1.2rem; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .big { font-weight: 600; letter-spacing: -.01em; }
+  .hint { font-size: .78rem; color: var(--faint); text-align: center; }
+  .dotc { width: 9px; height: 9px; border-radius: 50%; background: var(--ac); display: inline-block; flex: none; }
+
+  /* hero cluster */
+  .cluster { position: relative; min-height: 470px; }
+  .cluster .panel { position: absolute; }
+  .c-list { top: 0; left: 0; width: 240px; transform: rotate(-2deg); z-index: 1; }
+  .c-editor { top: 40px; right: 0; width: min(400px, 72%); transform: rotate(1.4deg); z-index: 3; }
+  .c-preview { bottom: 0; left: 16%; width: min(330px, 60%); transform: rotate(-1deg); z-index: 2; }
+
+  /* list pane mock */
+  .searchmock {
+    display: flex; align-items: center; gap: .5rem;
+    background: rgba(255, 255, 255, .06); border-radius: 10px;
+    padding: .4rem .6rem; font-size: .78rem; color: var(--faint); margin: .3rem 0 .7rem;
+  }
+  .searchmock .ic { width: 13px; height: 13px; flex: none; }
+  .navrow { display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--muted); padding: .3rem .35rem; border-radius: 8px; }
+  .navrow.on { background: rgba(255, 255, 255, .09); color: var(--text); font-weight: 600; }
+  .navrow .ic { width: 14px; height: 14px; flex: none; }
+  .navrow .cnt { margin-left: auto; font-size: .72rem; color: var(--faint); }
+  .notecard {
+    background: var(--card); border: 1px solid rgba(255, 255, 255, .06);
+    border-radius: 12px; padding: .55rem .65rem; margin-top: .5rem;
+  }
+  .notecard .nt { display: flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 600; }
+  .notecard .nt .pin { margin-left: auto; color: var(--amber); }
+  .notecard .nt .pin .ic { width: 12px; height: 12px; }
+  .notecard .ns { font-size: .7rem; color: var(--faint); margin-top: .2rem; line-height: 1.4; }
+
+  /* editor / preview mock */
+  .toolbar { display: flex; gap: .15rem; flex-wrap: wrap; padding: .3rem 0 .6rem; border-bottom: 1px solid rgba(255, 255, 255, .07); margin-bottom: .7rem; }
+  .tb {
+    width: 26px; height: 26px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .06); color: var(--muted); font-size: .72rem; font-weight: 700;
+  }
+  .tb .ic { width: 13px; height: 13px; }
+  .md { font-size: .82rem; line-height: 1.55; color: var(--muted); }
+  .md .mh { color: var(--text); font-weight: 700; font-size: 1.05rem; margin-bottom: .3rem; }
+  .md .mh2 { color: var(--text); font-weight: 700; font-size: .92rem; margin: .7rem 0 .25rem; }
+  .md b { color: var(--text); }
+  .md i { font-style: italic; }
+  .md s { color: var(--faint); }
+  .md .code {
+    display: inline-block; background: rgba(255, 255, 255, .09); border-radius: 5px;
+    padding: 0 .3rem; font-size: .76rem; color: var(--sky);
+  }
+  .md .codeblock {
+    background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 10px; padding: .55rem .7rem; font-size: .74rem; color: var(--sky);
+    margin: .5rem 0; white-space: pre; overflow: hidden;
+  }
+  .md .quote {
+    border-left: 3px solid var(--indigo); padding: .1rem 0 .1rem .6rem;
+    color: var(--muted); font-style: italic; margin: .5rem 0;
+  }
+  .md .hr { height: 1px; background: rgba(255, 255, 255, .12); margin: .7rem 0; }
+  .md .task { display: flex; align-items: flex-start; gap: .45rem; margin: .22rem 0; }
+  .md .task .box {
+    width: 15px; height: 15px; border-radius: 5px; flex: none; margin-top: .18rem;
+    border: 2px solid rgba(255, 255, 255, .28);
+  }
+  .md .task.done .box { background: var(--green); border-color: var(--green); position: relative; }
+  .md .task.done .box::after {
+    content: ""; position: absolute; left: 4px; top: .5px; width: 4px; height: 7.5px;
+    border: solid #062; border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  .md .task.done span { color: var(--faint); text-decoration: line-through; }
+  .md ul.plain { margin: .3rem 0; padding-left: 1rem; }
+  .md ul.plain li { margin: .15rem 0; }
+  .md a { color: var(--sky); }
+  .stats { display: flex; gap: 1rem; font-size: .7rem; color: var(--faint); padding: .55rem 0 0; border-top: 1px solid rgba(255, 255, 255, .07); margin-top: .8rem; }
+
+  /* ---------- sections ---------- */
+  section { padding: 4rem 0; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .5rem; }
+  .sub { color: var(--muted); max-width: 40rem; margin: 0 0 2.2rem; }
+
+  /* two-pane demo */
+  .demo-stage {
+    position: relative; border-radius: 18px; min-height: 480px; overflow: hidden;
+    background:
+      radial-gradient(30rem 18rem at 70% 20%, rgba(92, 124, 250, .10), transparent 70%),
+      linear-gradient(180deg, #0c0f13, #08090c);
+    border: 1px solid rgba(255, 255, 255, .06);
+    display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0;
+  }
+  .demo-stage .side { border-right: 1px solid rgba(255, 255, 255, .06); padding: .9rem .8rem; background: rgba(255, 255, 255, .02); }
+  .demo-stage .main { padding: 1rem 1.4rem; }
+  .tabs { display: flex; gap: .3rem; margin-bottom: .8rem; }
+  .tab {
+    font-size: .75rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px;
+    background: rgba(255, 255, 255, .06); color: var(--muted);
+  }
+  .tab.on { background: color-mix(in srgb, var(--indigo) 25%, transparent); color: var(--text); }
+
+  /* features */
+  .fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+  .fcard { background: var(--card); border: 1px solid rgba(255, 255, 255, .07); border-radius: 18px; padding: 1.3rem; }
+  .fcard .ficon {
+    width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--ac) 18%, transparent); color: var(--ac); margin-bottom: .8rem;
+  }
+  .fcard .ficon .ic { width: 20px; height: 20px; }
+  .fcard h3 { margin: 0 0 .3rem; font-size: 1rem; font-weight: 700; }
+  .fcard p { margin: 0; font-size: .88rem; color: var(--muted); }
+
+  /* how it works */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .step { position: relative; padding: 1.4rem; border: 1px solid rgba(255, 255, 255, .08); border-radius: 18px; background: var(--card); }
+  .step .n { font-size: .8rem; font-weight: 800; letter-spacing: .1em; color: var(--sky); margin-bottom: .5rem; display: block; }
+  .step h3 { margin: 0 0 .3rem; font-size: 1.02rem; }
+  .step p { margin: 0; font-size: .88rem; color: var(--muted); }
+
+  /* privacy */
+  .priv { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+  .priv .shield {
+    width: 54px; height: 54px; border-radius: 18px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green);
+  }
+  .priv .shield .ic { width: 28px; height: 28px; }
+  .priv div { max-width: 42rem; color: var(--muted); font-size: .98rem; }
+  .priv a { color: var(--sky); }
+
+  /* footer */
+  footer { border-top: 1px solid rgba(255, 255, 255, .07); padding: 2rem 0 2.5rem; margin-top: 2rem; }
+  .foot { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
+  .foot a { color: var(--muted); text-decoration: none; }
+  .foot a:hover { color: var(--text); }
+
+  .ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  @media (max-width: 1000px) {
+    .demo-stage { grid-template-columns: 1fr; }
+    .demo-stage .side { border-right: 0; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+  }
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .cluster { min-height: 0; display: grid; gap: 1rem; margin-top: .5rem; }
+    .cluster .panel { position: static; transform: none !important; width: 100%; }
+    .steps { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4.5 4.5h15v11l-5 5h-10v-16z"/><path d="M14.5 20.5v-5h5M8.5 9.5h7M8.5 13h4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16 16"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-11z"/></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24"><path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-11z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 4h6l-.7 6.2 2.7 3.3H7l2.7-3.3L9 4z"/><path d="M12 13.5V20"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></symbol>
+  <symbol id="i-color" viewBox="0 0 24 24"><path d="M12 3.5c4.7 0 8.5 3.4 8.5 7.6 0 3.4-2.6 6.4-6.4 6.4H10a2 2 0 0 1-1.5-3.3l2.3-3a2 2 0 0 1 1.5-.8h3a3.3 3.3 0 0 0 0-6.6H12z"/></symbol>
+  <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24"><path d="M5 7V4.5h14V7M12 4.5V19.5M9 19.5h6"/></symbol>
+  <symbol id="i-stats" viewBox="0 0 24 24"><path d="M4 19.5V10M9.5 19.5V4.5M15 19.5v-7M20.5 19.5V8"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 15V4M12 4L8 8M12 4l4 4M5 14v4.5a2.5 2.5 0 0 0 2.5 2.5h9a2.5 2.5 0 0 0 2.5-2.5V14"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="17.5" cy="6" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/><path d="M8.2 10.8l7-3.6M8.2 13.2l7 3.6"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5M13 4.5l-2 15"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.5 8c-2 .8-3 2.4-3 4.5V16h4v-4H8.2c.1-1.6.9-2.6 2.3-3.2L9.5 8zM18 8c-2 .8-3 2.4-3 4.5V16h4v-4h-2.3c.1-1.6.9-2.6 2.3-3.2L18 8z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+  <symbol id="i-hr" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.6l1.5-1.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H10L9 22l8.5-11.5H12L13 2z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.8-3.2 7.9-7.5 9.4-4.3-1.5-7.5-4.6-7.5-9.4V6L12 3z"/><path d="M9 12l2.2 2.2L15.5 9.7"/></symbol>
+  <symbol id="i-feather" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H10L9 22l8.5-11.5H12L13 2z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9L6.6 6.6M17.4 17.4l1.7 1.7M19.1 4.9L17.4 6.6M6.6 17.4l-1.7 1.7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-offline" viewBox="0 0 24 24"><path d="M5 12.5a9 9 0 0 1 14 0M8 15.5a5 5 0 0 1 8 0M12 19h.01"/><path d="M4 4l16 16"/></symbol>
+</svg>
+
+<nav>
+  <div class="wrap nav">
+    <a class="logo" href="#"><span class="dot"></span>Notes</a>
+    <div class="nav-links">
+      <a href="#editor">Editor</a>
+      <a href="#organize">Organize</a>
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+    </div>
+    <a class="btn" href="#editor">See the editor</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">For Meta Quest · Horizon OS</p>
+      <h1>Your thoughts in <em>plain markdown</em></h1>
+      <p class="lede">Notes is a full markdown notes app for Horizon: a fast editor with formatting toolbar and live preview, task lists you can check right in the preview, folders, colors, search and one-tap export. Everything stays on your headset.</p>
+      <div class="badges">
+        <span class="badge">Full markdown</span>
+        <span class="badge">Live preview</span>
+        <span class="badge">Task lists</span>
+        <span class="badge">Folders &amp; search</span>
+        <span class="badge">Free</span>
+        <span class="badge">No ads</span>
+        <span class="badge">No accounts</span>
+        <span class="badge">Works offline</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#editor">See it in action</a>
+        <a class="btn ghost" href="privacy.html">Privacy policy</a>
+      </div>
+    </div>
+
+    <div class="cluster">
+      <div class="panel c-list" style="--ac: var(--indigo)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-note"/></svg></span>
+          <span class="pt">Notes</span>
+        </div>
+        <div class="pbody" style="padding:.3rem .7rem .9rem">
+          <div class="searchmock"><svg class="ic"><use href="#i-search"/></svg>Search notes…</div>
+          <div class="navrow on"><svg class="ic"><use href="#i-note"/></svg>All notes<span class="cnt">128</span></div>
+          <div class="navrow"><svg class="ic"><use href="#i-folder"/></svg>Work<span class="cnt">34</span></div>
+          <div class="navrow"><svg class="ic"><use href="#i-folder"/></svg>Ideas<span class="cnt">12</span></div>
+          <div class="navrow"><svg class="ic"><use href="#i-folder-plus"/></svg>New folder</div>
+          <div class="notecard">
+            <div class="nt"><span class="dotc" style="--ac: var(--amber)"></span>Release plan<svg class="pin ic"><use href="#i-pin"/></svg></div>
+            <div class="ns">Ship the landing, then update the store assets and…</div>
+          </div>
+          <div class="notecard">
+            <div class="nt"><span class="dotc" style="--ac: var(--green)"></span>Meeting notes</div>
+            <div class="ns">Action items: follow up on the SDK upgrade…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel c-editor" style="--ac: var(--sky)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-pen"/></svg></span>
+          <span class="pt">Release plan</span>
+          <span class="picons"><svg class="ic"><use href="#i-pin"/></svg><svg class="ic"><use href="#i-share"/></svg><svg class="ic"><use href="#i-x"/></svg></span>
+        </div>
+        <div class="pbody">
+          <div class="toolbar">
+            <span class="tb">B</span><span class="tb"><i>B</i></span><span class="tb">S</span><span class="tb">H1</span><span class="tb">H2</span>
+            <span class="tb"><svg class="ic"><use href="#i-list"/></svg></span><span class="tb"><svg class="ic"><use href="#i-tasks"/></svg></span>
+            <span class="tb"><svg class="ic"><use href="#i-quote"/></svg></span><span class="tb"><svg class="ic"><use href="#i-code"/></svg></span>
+            <span class="tb"><svg class="ic"><use href="#i-hr"/></svg></span><span class="tb"><svg class="ic"><use href="#i-link"/></svg></span>
+          </div>
+          <div class="md">
+            <div class="mh">Release plan</div>
+            <div>Ship the landing, then <b>update store assets</b> and <i>double-check</i> the <s>old</s> new icons.</div>
+            <div class="codeblock">gradle :app:bundleMetaRelease</div>
+            <div class="task done"><span class="box"></span><span>Write the privacy policy</span></div>
+            <div class="task"><span class="box"></span><span>Publish the submission</span></div>
+            <div class="task"><span class="box"></span><span>Celebrate <span class="code">🎉</span></span></div>
+          </div>
+          <div class="stats"><span>86 words</span><span>512 chars</span><span>1 min read</span></div>
+        </div>
+      </div>
+
+      <div class="panel c-preview" style="--ac: var(--green)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-eye"/></svg></span>
+          <span class="pt">Preview</span>
+        </div>
+        <div class="pbody">
+          <div class="md">
+            <div class="mh2">Groceries</div>
+            <div class="task done"><span class="box"></span><span>Oat milk</span></div>
+            <div class="task"><span class="box"></span><span>Coffee beans</span></div>
+            <div class="quote">Keep the note body pure markdown.</div>
+            <ul class="plain"><li>Return the parcel Friday</li><li>Garage code <span class="code">4415</span></li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ EDITOR ============ -->
+<section id="editor">
+  <div class="wrap">
+    <h2>Write and preview, without leaving the note</h2>
+    <p class="sub">A real markdown editor: the formatting toolbar wraps the selection in the right syntax, the preview renders it instantly, and task checkboxes work in both.</p>
+    <div class="demo-stage">
+      <div class="side">
+        <div class="searchmock" style="margin:.1rem 0 .7rem"><svg class="ic"><use href="#i-search"/></svg>Search notes…</div>
+        <div class="navrow on"><svg class="ic"><use href="#i-note"/></svg>All notes<span class="cnt">128</span></div>
+        <div class="navrow"><svg class="ic"><use href="#i-folder"/></svg>Work<span class="cnt">34</span></div>
+        <div class="navrow"><svg class="ic"><use href="#i-folder"/></svg>Ideas<span class="cnt">12</span></div>
+        <div class="navrow"><svg class="ic"><use href="#i-folder"/></svg>Travel<span class="cnt">7</span></div>
+        <div class="notecard">
+          <div class="nt"><span class="dotc" style="--ac: var(--coral)"></span>Sprint notes<svg class="pin ic"><use href="#i-pin"/></svg></div>
+          <div class="ns">Blockers: the preview reflow on long code…</div>
+        </div>
+        <div class="notecard">
+          <div class="nt"><span class="dotc" style="--ac: var(--sky)"></span>Reading list</div>
+          <div class="ns">"The Design of Everyday Things", second…</div>
+        </div>
+      </div>
+      <div class="main">
+        <div class="ph" style="padding:0 0 .2rem">
+          <span class="chip" style="--ac: var(--indigo)"><svg class="ic"><use href="#i-pen"/></svg></span>
+          <span class="pt">Sprint notes</span>
+          <span class="picons"><svg class="ic"><use href="#i-pin"/></svg><svg class="ic"><use href="#i-color"/></svg><svg class="ic"><use href="#i-folder"/></svg><svg class="ic"><use href="#i-share"/></svg></span>
+        </div>
+        <div class="tabs">
+          <span class="tab on">Write</span>
+          <span class="tab">Preview</span>
+        </div>
+        <div class="toolbar">
+          <span class="tb">B</span><span class="tb"><i>B</i></span><span class="tb">S</span><span class="tb">H1</span><span class="tb">H2</span><span class="tb">H3</span>
+          <span class="tb"><svg class="ic"><use href="#i-list"/></svg></span><span class="tb"><svg class="ic"><use href="#i-tasks"/></svg></span>
+          <span class="tb"><svg class="ic"><use href="#i-quote"/></svg></span><span class="tb"><svg class="ic"><use href="#i-code"/></svg></span>
+          <span class="tb"><svg class="ic"><use href="#i-hr"/></svg></span><span class="tb"><svg class="ic"><use href="#i-link"/></svg></span>
+        </div>
+        <div class="md" style="font-size:.9rem">
+          <div class="mh">Sprint notes</div>
+          <div class="mh2">Blockers</div>
+          <div>Preview reflow on <b>long code blocks</b> — cap the width and add a <s>horizontal scroll</s> wrap. See <span class="code">MarkdownPreview.kt</span>.</div>
+          <div class="codeblock">fun toggleTask(line: String): String =
+    line.replaceFirst(Regex("\\[ ]"), "[x]")</div>
+          <div class="mh2">Done this week</div>
+          <div class="task done"><span class="box"></span><span>Folders with rename and delete</span></div>
+          <div class="task done"><span class="box"></span><span>Interactive task lists in preview</span></div>
+          <div class="task done"><span class="box"></span><span>Export all notes to .zip</span></div>
+          <div class="mh2">Next</div>
+          <div class="task"><span class="box"></span><span>Pin notes to the top</span></div>
+          <div class="task"><span class="box"></span><span>New-note template</span></div>
+          <div class="quote">A note is a file. A file is a note. Keep it simple.</div>
+          <div class="hr"></div>
+          <ul class="plain"><li>Ship it</li><li>Write the store description</li><li>Ask for reviews</li></ul>
+        </div>
+        <div class="stats"><span>412 words</span><span>2 318 chars</span><span>96 lines</span><span>2 min read</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ORGANIZE ============ -->
+<section id="organize" style="padding-top:0">
+  <div class="wrap">
+    <h2>Organize it your way</h2>
+    <p class="sub">Flat and fast, or in folders — you choose. Nothing to sync, nothing to configure, nothing to pay for.</p>
+    <div class="fgrid">
+      <div class="fcard" style="--ac: var(--indigo)">
+        <div class="ficon"><svg class="ic"><use href="#i-folder"/></svg></div>
+        <h3>Folders</h3>
+        <p>Create, rename and delete folders; move a note to any of them in one tap.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--sky)">
+        <div class="ficon"><svg class="ic"><use href="#i-search"/></svg></div>
+        <h3>Instant search</h3>
+        <p>Type and the list filters as you go — titles and content, across all folders.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--amber)">
+        <div class="ficon"><svg class="ic"><use href="#i-pin"/></svg></div>
+        <h3>Pins &amp; colors</h3>
+        <p>Pin what matters to the top and mark notes with a color label to find them at a glance.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--green)">
+        <div class="ficon"><svg class="ic"><use href="#i-sort"/></svg></div>
+        <h3>Sort your way</h3>
+        <p>By modified, created or title, ascending or descending — set once, applied everywhere.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--coral)">
+        <div class="ficon"><svg class="ic"><use href="#i-tasks"/></svg></div>
+        <h3>Task lists</h3>
+        <p>Checkboxes render in the preview and toggle with a tap — your notes double as to-do lists.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--pink)">
+        <div class="ficon"><svg class="ic"><use href="#i-export"/></svg></div>
+        <h3>Export &amp; share</h3>
+        <p>Share any note as .md or export everything as a zip archive, straight from the app.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--neutral)">
+        <div class="ficon"><svg class="ic"><use href="#i-type"/></svg></div>
+        <h3>Autosave</h3>
+        <p>Every keystroke is saved for you. Close the app mid-sentence — the note is already on disk.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--neutral)">
+        <div class="ficon"><svg class="ic"><use href="#i-stats"/></svg></div>
+        <h3>Writing stats</h3>
+        <p>Words, characters, lines and reading time, always in view at the bottom of the editor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">No onboarding, no sync setup, no first-run maze.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="n">01</span>
+        <h3>Open and write</h3>
+        <p>The first screen is the editor. Tap, type, format — autosave handles the rest.</p>
+      </div>
+      <div class="step">
+        <span class="n">02</span>
+        <h3>Find it later</h3>
+        <p>Search filters as you type; folders, pins and colors keep the list tidy as it grows.</p>
+      </div>
+      <div class="step">
+        <span class="n">03</span>
+        <h3>Take it with you</h3>
+        <p>Share a note as markdown or export everything as a zip when you want a copy.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRIVACY ============ -->
+<section id="privacy" style="padding-top:0">
+  <div class="wrap">
+    <div class="priv">
+      <div class="shield"><svg class="ic"><use href="#i-shield"/></svg></div>
+      <div>
+        <h2 style="margin-bottom:.4rem">Your notes never leave your headset</h2>
+        <p>Notes works fully offline: no accounts, no ads, no analytics, no cloud, no network permission. Every note is a plain <b>.md</b> file on your device that you can export at any time. Read the full <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Service</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>Notes — markdown notes for Meta Quest · Free · No ads · No accounts</div>
+    <div><a href="index.html">Legal</a> · <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></div>
+    <div>Contact: <a href="mailto:oisurka@gmail.com">oisurka@gmail.com</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
